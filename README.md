@@ -1,5 +1,5 @@
 ## Facturalatam.com
-## APIDIAN community edition
+## APIDIAN Community Edition
 ## Licencia
 
 Este proyecto está publicado bajo la licencia MIT.
