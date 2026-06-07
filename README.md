@@ -1,2 +1,6 @@
-# apidian
-API de facturación electrónica ilimitada para DIAN Colombia Open Source
+## APIDIAN
+## Licencia
+
+Este proyecto está publicado bajo la licencia MIT.
+
+Puedes usarlo, copiarlo, modificarlo, distribuirlo y venderlo libremente, siempre que mantengas el aviso de copyright y la licencia original.
