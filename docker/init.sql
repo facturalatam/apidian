@@ -1,0 +1,7 @@
+CREATE DATABASE IF NOT EXISTS db_api;
+
+CREATE USER 'user_api'@'%' IDENTIFIED BY 'password_api';
+
+GRANT ALL PRIVILEGES ON db_api.* TO 'user_api'@'%';
+
+FLUSH PRIVILEGES;

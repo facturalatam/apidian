@@ -1,0 +1,76 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/*.zip
+/storage/*.xml
+/storage/app/facturas
+/vendor
+.env
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+produccion.bat
+habilitacion.bat
+/storage/api-docs
+composer.lock
+usuario_admin.txt
+.vscode/
+!storage/api-docs/api-docs.json
+docker-compose.yml
+docker.env
+.claude
+actualizar_lamp.txt
+api24.txt
+actualizar.txt
+api26.txt
+scripfactura_api.sh
+script_api_ip.sh
+script_api.sh
+script.sh
+scriptlamp20.sh
+/extractcode
+
+# ===== Community Edition (Facturalatam) =====
+# Respaldos de código Enterprise removido — NO distribuir en el repo Community
+_*_removed/
+database/_enterprise_upgrade/
+*.bak
+*-bak
+
+# Empaquetados / binarios de despliegue
+# (storage.zip SÍ se distribuye: esqueleto de storage/ requerido por la instalación)
+/api_docker.zip
+
+# Notas internas consolidadas en INSTALACION.md — no distribuir los originales
+Comandos Instalacion API 2025 Linux Ubuntu 20.txt
+Comandos Instalacion API 2025 Windows.txt
+ConfigurarPDFFichasRut.txt
+ConfigurarPDFFichasRutdocker.txt
+instalaciondocker.md
+Proceso de actualizacion APIDIAN.txt
+MIGRACION_LARAVEL_5_7_A_10.md
+
+# Basura de SO / IDE
+.DS_Store
+.idea/
+
+# ===== SENSIBLE — NUNCA distribuir (llaves privadas y datos reales) =====
+# Certificados de firma DIAN (.p12/.pfx) — llaves privadas de las empresas
+*.p12
+*.pfx
+/storage/app/certificates/
+# Datos generados por la app (XML/ZIP firmados, recibidos, RUT temporales)
+/storage/app/xml/
+/storage/app/zip/
+/storage/app/received/
+/storage/app/rut_temp/
+
+# Cache compilado de Laravel
+/bootstrap/cache/*.php
+
+# Archivos con secretos reales (token, certificado .p12 y contraseña embebidos)
+*.http
+request.http

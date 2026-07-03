@@ -1,0 +1,45 @@
+.topbar .navbar-header {
+    background: transparent;
+}
+
+.page-titles .breadcrumb {
+    float: left;
+}
+
+.sidebar-nav > ul > li > a.active {
+    background-color: #e5e5e5;
+}
+
+.bg-info {
+    background-color: #0088cc !important;
+}
+
+.topbar {
+    background-color: #0088cc !important;
+}
+
+.btn-info, .btn-info.disabled {
+    background-color: #0088cc !important;
+    border: 1px solid #0088cc;
+
+}
+
+.header .logo {
+    height: 100%;
+    margin-top: 5px;
+}
+
+.header .logo img {
+    height: 45px;
+}
+
+html {
+    font-size: 13px;
+}
+
+
+.checkbox{
+    display:block;
+    margin: 15px 0;
+}
+

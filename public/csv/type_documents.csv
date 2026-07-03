@@ -1,0 +1,10 @@
+1	Factura de Venta Nacional	01	CUFE-SHA384	fv
+2	Factura de Exportación	02	CUFE-SHA384	fv
+3	Factura de Contingencia	03	CUDE-SHA384	fv
+4	Nota Crédito	91	CUDE-SHA384	nc
+5	Nota Débito	92	CUDE-SHA384	nd
+6	ZIP			z
+7	AttachedDocument	89		at
+8	ApplicationResponse	88	CUDE-SHA384	ar
+9	Nomina Individual	1	CUNE-SHA384	ni
+10	Nomina Individual de Ajuste	2	CUNE-SHA384	na

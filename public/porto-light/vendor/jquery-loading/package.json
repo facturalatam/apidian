@@ -1,0 +1,45 @@
+{
+  "name": "jquery-easy-loading",
+  "version": "1.3.0",
+  "description": "Easily add and manipulate loading states of any element on the page",
+  "keywords": [
+    "jquery",
+    "jquery-plugin",
+    "ecosystem:jquery",
+    "overlay",
+    "loading",
+    "loader",
+    "ajax"
+  ],
+  "author": "Carlos Bonetti <carlosb_bc@hotmail.com>",
+  "license": "MIT",
+  "url": "http://github.com/CarlosBonetti/jquery-loading",
+  "repository": "http://github.com/CarlosBonetti/jquery-loading",
+  "homepage": "http://carlosbonetti.github.io/jquery-loading/",
+  "main": "./dist/jquery.loading.js",
+  "style": [
+    "./dist/jquery.loading.css"
+  ],
+  "scripts": {
+    "start": "grunt watch",
+    "build": "grunt",
+    "test": "grunt test",
+    "version": "npm run build && git add dist/"
+  },
+  "peerDependencies": {
+    "jquery": ">=1.7"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-cssmin": "^1.0.2",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-qunit": "^1.2.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-contrib-watch": "^1.0.0",
+    "jquery": "^1.11.1",
+    "jshint": "^2.9.4",
+    "qunitjs": "^2.0.1"
+  }
+}

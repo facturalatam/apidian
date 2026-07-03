@@ -1,0 +1,18 @@
+4	Nota Débito para facturación electrónica V1 (Decreto 2242)	33
+5	Nota Débito sin referencia a facturas	32
+6	Nota Débito que referencia una factura electrónica	30
+7	Nota Crédito para facturación electrónica V1 (Decreto 2242)	23
+8	Nota Crédito sin referencia a facturas	22
+9	AIU	09
+10	Estandar	10
+11	Mandatos bienes	11
+12	Nota Crédito que referencia una factura electrónica	20
+13	Combustibles	01
+14	Emisor es Autorretenedor	02
+15	Excluidos y Exentos	03
+16	Exportación	04
+17	Genérica	05
+18	Genérica con pago anticipado	06
+19	Genérica con periodo de facturacion	07
+20	Consorcio	08
+21	Mandatos Servicios	12
