@@ -45,7 +45,7 @@ API de **facturación electrónica para la DIAN (Colombia)** — versión **Comm
 📋 **Guía completa paso a paso:** [INSTALACION.md](INSTALACION.md) — Windows (Laragon),
 Linux Ubuntu (VPS con Apache) y Docker, incluida la configuración de fichas RUT (Poppler).
 
-### Ejemolo JSON envio de factura
+### Ejemplo JSON envio de factura
 
 ```bash
 {
