@@ -237,9 +237,6 @@ Linux Ubuntu (VPS con Apache) y Docker, incluida la configuración de fichas RUT
 }
 ```
 
-> Para reiniciar la base de datos desde cero: `php artisan migrate:fresh --seed`.
-> Guía detallada en la [documentación](https://manual.facturalatam.com/).
-
 ---
 
 ## 📄 Licencia
