@@ -3,10 +3,6 @@
 API de **facturación electrónica para la DIAN (Colombia)** — versión **Community**
 (gratuita y de código abierto) mantenida por **[Facturalatam](https://facturalatam.com)**.
 
-Esta edición contiene el **núcleo de facturación electrónica** completo y funcional.
-Es una versión **recortada**: se removieron los módulos exclusivos de la edición
-**Enterprise**, dejando intacto todo lo necesario para emitir los documentos
-electrónicos principales ante la DIAN.
 
 📖 **Documentación:** [https://manual.facturalatam.com/](https://manual.facturalatam.com/)
 
