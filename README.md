@@ -3,6 +3,9 @@
 API de **facturación electrónica para la DIAN (Colombia)** — versión **Community**
 (gratuita y de código abierto) mantenida por **[Facturalatam](https://facturalatam.com)**.
 
+<p align="center">
+  <img src="[images/captura.png](https://facturalatam.com/api/images/listado_api.png)" alt="Captura del sistema" width="700">
+</p>
 
 📖 **Documentación:** [https://manual.facturalatam.com/](https://manual.facturalatam.com/)
 
