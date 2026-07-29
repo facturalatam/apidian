@@ -27,11 +27,11 @@ API de **facturación electrónica para la DIAN (Colombia)** — versión **Comm
 - **RIPS** (Registro Individual de Prestación de Servicios de Salud).
 - **Sector Salud**: campos de salud en el XML/PDF de las facturas.
 - **Aplicación móvil**.
-- **Módulo Extractor**.
+- **Módulo Extractor de facturas de compras**.
 - Gestión avanzada de **usuarios/roles**, **acceso a la app** y **almacenamiento en la nube**.
 
 > Estos módulos se comercializan en la edición **Enterprise** de
-> [Facturalatam](https://facturalatam.com).
+> [Facturalatam](https://facturalatam.com/api).
 
 ---
 
