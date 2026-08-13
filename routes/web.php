@@ -98,7 +98,7 @@ Route::group(['middleware' => ['auth', 'company.web.access']], function() {
     Route::get('/configuration_admin', 'ConfigurationController@configuration_admin')->name('configuration_admin');
     Route::post('/configuration', 'ConfigurationController@store')->name('configuration_store');
     Route::get('configuration/tables', 'ConfigurationController@tables');
-    Route::post('configuration/extract-rut', 'ConfigurationController@extractRut');
+    Route::post('configuration/extract-rut', 'ConfigurationController@extractRut'); // usa RutExtractorV2 (parser por casillas del formulario DIAN 001)
     Route::get('configuration/records', 'ConfigurationController@records');
 
     Route::get('tax', 'TaxController@index')->name('tax_index');
