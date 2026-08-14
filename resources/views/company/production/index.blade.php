@@ -2,31 +2,61 @@
 
 @push('styles')
 <style>
-/* Estilos para las tabs principales */
+/* Estilos para las tabs principales (mayor relevancia) */
 #documentTabs .nav-item {
     display: flex;
     flex: 1;
 }
+#documentTabs .nav-link {
+    font-size: 16px;
+    font-weight: 700;
+    height: 58px;
+    color: #2B323D;
+    transition: color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+#documentTabs .nav-link:hover {
+    background: #f5f7fa;
+    color: #0d6efd;
+}
 #documentTabs .nav-link .tab-icon {
-    height: 24px;
-    width: 24px;
+    height: 28px;
+    width: 28px;
+}
+#documentTabs .nav-link.active {
+    color: #0d6efd;
+    box-shadow: inset 0 -3px 0 #0d6efd;
 }
 
-/* Estilos para las sub-tabs */
+/* Estilos para las sub-tabs (menor peso / menor tamaño) */
 .sub-tabs .nav-item {
-    width: 50%;
     display: flex;
+    flex: 1;
 }
 .sub-tabs .nav-link {
     border-radius: 0;
-    font-size: 17px;
+    font-size: 12.5px;
+    font-weight: 500 !important;
     text-align: center;
     width: 100%;
-    height: 48px;
+    height: 40px;
+    color: #6b7280;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 6px;
+    transition: color .15s ease, box-shadow .15s ease;
+}
+.sub-tabs .nav-link svg {
+    width: 16px;
+    height: 16px;
+}
+.sub-tabs .nav-link:hover {
+    color: #2B323D;
+}
+.sub-tabs .nav-link.active {
+    color: #2B323D;
+    font-weight: 600 !important;
+    box-shadow: inset 0 -2px 0 #adb5bd;
 }
 
 .tab-content {
@@ -96,18 +126,22 @@ hr {
 /* Responsive */
 @media (max-width: 768px) {
     #documentTabs .nav-link {
-        font-size: 13px;
-        height: 40px;
+        font-size: 14px;
+        height: 54px;
         padding: 8px 4px;
     }
     #documentTabs .nav-link .tab-icon {
-        height: 20px;
-        width: 20px;
+        height: 24px;
+        width: 24px;
     }
     .sub-tabs .nav-link {
-        font-size: 15px;
-        height: 40px;
-        padding: 8px 4px;
+        font-size: 12px;
+        height: 36px;
+        padding: 6px 4px;
+    }
+    .sub-tabs .nav-link svg {
+        width: 14px;
+        height: 14px;
     }
 }
 </style>
@@ -422,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2>{{ $company->user->name }} - {{ $company->identification_number }}</h2>
                     <br>
                     <span class="text-muted">Factura Electrónica</span>
+                    @include('company.production._environment_badge', ['environmentStatus' => $environmentStatuses['invoice'], 'type' => 'invoice'])
                 </div>
                 <div class="mt-auto pb-1">
                     <a href="{{ route('home') }}" class="btn btn-secondary btn-sm">
@@ -492,6 +527,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2>{{ $company->user->name }} - {{ $company->identification_number }}</h2>
                     <br>
                     <span class="text-muted">Documento Soporte</span>
+                    @include('company.production._environment_badge', ['environmentStatus' => $environmentStatuses['support'], 'type' => 'support'])
                 </div>
                 <div class="mt-auto pb-1">
                     <a href="{{ route('home') }}" class="btn btn-secondary btn-sm">
@@ -562,6 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <h2>{{ $company->user->name }} - {{ $company->identification_number }}</h2>
                     <br>
                     <span class="text-muted">Eventos RADIAN</span>
+                    @include('company.production._environment_badge', ['environmentStatus' => $environmentStatuses['event'], 'type' => 'event'])
                 </div>
                 <div class="mt-auto pb-1">
                     <a href="{{ route('home') }}" class="btn btn-secondary btn-sm">

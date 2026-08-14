@@ -214,20 +214,85 @@ class Document extends Model
 
     protected $appends = ['client_data'];
 
-    public function scopeFilter($query, $search = null) {
-        if (!empty($search)) {
-            $query->where(function ($q) use ($search) {
-                $q->orWhere('number', 'LIKE', "%$search%")
-                    ->orWhere('prefix', 'LIKE', "%$search%")
-                    ->orWhereRaw("CONCAT(COALESCE(prefix, ''), COALESCE(number, '')) LIKE ?", ["%$search%"])
-                    ->orWhere('total', 'LIKE', "%$search%")
-                    ->orWhere('date_issue', 'LIKE', "%$search%")
-                    ->orWhereRaw("JSON_UNQUOTE(client->'$.name') LIKE ?", ["%$search%"])
-                    ->orWhereRaw("JSON_UNQUOTE(client->'$.email') LIKE ?", ["%$search%"])
-                    ->orWhereRaw("JSON_UNQUOTE(client->'$.phone') LIKE ?", ["%$search%"])
-                    ->orWhereRaw("JSON_UNQUOTE(client->'$.identification_number') LIKE ?", ["%$search%"]);
-                });
+    /**
+     * Búsqueda de documentos.
+     *
+     * @param  string|null  $search    Valor a buscar (en fecha es el "desde").
+     * @param  string|null  $field     Columna a filtrar: number, prefix, client, date,
+     *                                 type, state, ambient. Si es null/vacío busca en
+     *                                 todos los campos (comportamiento original, usado por la API).
+     * @param  string|null  $searchTo  Segundo valor para el rango de fechas (el "hasta").
+     */
+    public function scopeFilter($query, $search = null, $field = null, $searchTo = null) {
+        // En rango de fechas el "hasta" puede venir sin el "desde".
+        $hasValue = !empty($search) || ($field === 'date' && !empty($searchTo));
+        if (!$hasValue) {
+            return $query;
         }
+
+        // Búsqueda por columna específica (selector del panel de empresa).
+        if (!empty($field)) {
+            switch ($field) {
+                case 'number':
+                    $query->where(function ($q) use ($search) {
+                        $q->where('number', 'LIKE', "%$search%")
+                            ->orWhereRaw("CONCAT(COALESCE(prefix, ''), COALESCE(number, '')) LIKE ?", ["%$search%"]);
+                    });
+                    break;
+                case 'prefix':
+                    $query->where('prefix', 'LIKE', "%$search%");
+                    break;
+                case 'client':
+                    $query->where(function ($q) use ($search) {
+                        $q->whereRaw("JSON_UNQUOTE(client->'$.name') LIKE ?", ["%$search%"])
+                            ->orWhereRaw("JSON_UNQUOTE(client->'$.identification_number') LIKE ?", ["%$search%"]);
+                    });
+                    break;
+                case 'type':
+                    $query->where('type_document_id', $search);
+                    break;
+                case 'date':
+                    if (!empty($search) && !empty($searchTo)) {
+                        $query->whereDate('date_issue', '>=', $search)
+                              ->whereDate('date_issue', '<=', $searchTo);
+                    } elseif (!empty($search)) {
+                        $query->whereDate('date_issue', $search);
+                    } elseif (!empty($searchTo)) {
+                        $query->whereDate('date_issue', $searchTo);
+                    }
+                    break;
+                case 'state': // Columna "Válido": Sí = state_document_id presente.
+                    if ($search === 'si') {
+                        $query->whereNotNull('state_document_id')->where('state_document_id', '!=', 0);
+                    } elseif ($search === 'no') {
+                        $query->where(function ($q) {
+                            $q->whereNull('state_document_id')->orWhere('state_document_id', 0);
+                        });
+                    }
+                    break;
+                case 'ambient': // 2 = Habilitación; cualquier otro = Producción.
+                    if ($search === 'hab') {
+                        $query->where('ambient_id', 2);
+                    } elseif ($search === 'prod') {
+                        $query->where('ambient_id', '!=', 2);
+                    }
+                    break;
+            }
+            return $query;
+        }
+
+        // Búsqueda global (todos los campos).
+        $query->where(function ($q) use ($search) {
+            $q->orWhere('number', 'LIKE', "%$search%")
+                ->orWhere('prefix', 'LIKE', "%$search%")
+                ->orWhereRaw("CONCAT(COALESCE(prefix, ''), COALESCE(number, '')) LIKE ?", ["%$search%"])
+                ->orWhere('total', 'LIKE', "%$search%")
+                ->orWhere('date_issue', 'LIKE', "%$search%")
+                ->orWhereRaw("JSON_UNQUOTE(client->'$.name') LIKE ?", ["%$search%"])
+                ->orWhereRaw("JSON_UNQUOTE(client->'$.email') LIKE ?", ["%$search%"])
+                ->orWhereRaw("JSON_UNQUOTE(client->'$.phone') LIKE ?", ["%$search%"])
+                ->orWhereRaw("JSON_UNQUOTE(client->'$.identification_number') LIKE ?", ["%$search%"]);
+            });
         return $query;
     }
 

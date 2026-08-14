@@ -282,6 +282,10 @@ class ConfigurationController extends Controller
                     'type_environment_id' => $request->type_environment_id ?? 2,
                     'payroll_type_environment_id' => $request->payroll_type_environment_id ?? 2,
                     'eqdocs_type_environment_id' => $request->eqdocs_type_environment_id ?? 2,
+                    // Se quedaban en NULL: el badge caía a Habilitación por el ?? 2 y el
+                    // render del XML 05/95/88 reventaba al leer ->code sobre la relación nula.
+                    'support_document_type_environment_id' => $request->support_document_type_environment_id ?? 2,
+                    'event_type_environment_id' => $request->event_type_environment_id ?? 2,
                     'type_operation_id' => $request->type_operation_id ?? 10,
                     'type_document_identification_id' => $request->type_document_identification_id,
                     'country_id' => $request->country_id ?? 46,

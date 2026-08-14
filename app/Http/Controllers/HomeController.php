@@ -75,11 +75,19 @@ class HomeController extends Controller
             abort(403, 'No tienes acceso a esta empresa.');
         }
 
-        $documents = Document::where('identification_number', $company->identification_number)->orderBy('id', 'DESC')->paginate(20);
+        $documents = Document::where('identification_number', $company->identification_number)
+            ->filter(request('search'), request('search_field'), request('search_to'))
+            ->orderBy('id', 'DESC')
+            ->paginate(20)
+            ->withQueryString();
 
         $resolution_credit_notes = Resolution::where('type_document_id', 4)->where('company_id', $company->id)->get();
 
         $token_company = $company->user->api_token;
+
+        // Este listado mezcla todos los tipos de documento, asi que no se pasa $type:
+        // la vista pinta un badge por tipo en vez de mostrar el de facturas para todos.
+        $company->load('software');
 
         return view('company.documents', ['company' => $company, 'documents' => $documents, 'resolution_credit_notes' => $resolution_credit_notes, 'token_company' => $token_company]);
     }
@@ -120,8 +128,15 @@ class HomeController extends Controller
 
     // replica de SellerLoginController@SellersRadianEventsView
     public function events($company_idnumber){
-        $documents = ReceivedDocument::where('customer','=',$company_idnumber)->where('state_document_id', '=', 1)->paginate(10);
-        return view('company.events', compact('documents', 'company_idnumber'));
+        $documents = ReceivedDocument::where('customer','=',$company_idnumber)
+            ->where('state_document_id', '=', 1)
+            ->filter(request('event_search'), request('event_search_field'), request('event_search_to'))
+            ->paginate(10)
+            ->withQueryString();
+        // Sin $company la vista revienta en el encabezado y el badge de ambiente
+        // cae al valor por defecto (Habilitación) sin leer event_type_environment_id.
+        $company = Company::with('software')->where('identification_number', $company_idnumber)->firstOrFail();
+        return view('company.events', compact('documents', 'company_idnumber', 'company'));
     }
 
     public function update(Request $request, $companyId)

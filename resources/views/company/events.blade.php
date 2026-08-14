@@ -3,6 +3,9 @@
         <h2>{{ $company->user->name }} - {{ $company->identification_number }}</h2>
         <br>
         <span class="text-muted">Seleccione el tipo de documento</span>
+        @if(isset($company))
+            @include('company.production._environment_badge', ['company' => $company, 'type' => 'event'])
+        @endif
     </div>
     <div class="mt-auto pb-1">
         <a href="{{ route('home') }}" class="btn btn-secondary btn-sm">

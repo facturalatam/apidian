@@ -372,6 +372,20 @@
                         </div>
                     </form>
                 </div>
+                <div class="col-md-4">
+                    <div class="cert-help-box">
+                        <i class="el-icon-document" style="font-size:22px;color:#409EFF;"></i>
+                        <h5 class="cert-help-title">¿No tienes certificado digital?</h5>
+                        <p class="cert-help-text">
+                            Necesitas un <strong>.pfx / .p12</strong> autorizado para firmar ante la DIAN.
+                        </p>
+                        <a href="https://facturalatam.com/certificados-digitales/"
+                           target="_blank" rel="noopener noreferrer"
+                           class="el-button el-button--success el-button--mini">
+                            <i class="el-icon-shopping-cart-2"></i> Adquirir certificado
+                        </a>
+                    </div>
+                </div>
                 <div class="col-md-12 text-center mt-4">
                     <el-button size="medium" type="primary" :loading="loading_submit" @click="saveCertificate">
                         Siguiente</el-button>
@@ -534,6 +548,60 @@
                                         <small class="form-control-feedback" v-if="errors.date_to" v-text="errors.date_to[0]"></small>
                                     </div>
                                 </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <el-checkbox v-model="createCreditNoteResolution">
+                                            Crear también la resolución para <b>Nota Crédito</b> (configuración inicial necesaria para poder emitir NC)
+                                        </el-checkbox>
+                                        <div class="text-muted" style="font-size: 12px; margin-top: 2px;">
+                                            La DIAN no exige numeración autorizada para NC: el número de resolución puede ser
+                                            cualquiera y <b>no requiere clave técnica</b>.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12" v-if="createCreditNoteResolution">
+                                    <div class="nc-resolution-box">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Prefijo NC</label>
+                                                    <el-input v-model="ncResolution.prefix"></el-input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Número de Resolución</label>
+                                                    <el-input v-model="ncResolution.resolution"></el-input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Rango Inicial (desde)</label>
+                                                    <el-input type="number" v-model.number="ncResolution.from"></el-input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <div class="form-group">
+                                                    <label class="control-label">Rango Final (hasta)</label>
+                                                    <el-input type="number" v-model.number="ncResolution.to"></el-input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group" style="margin-bottom: 0;">
+                                                    <label class="control-label">Vigencia desde</label>
+                                                    <el-input type="date" v-model="ncResolution.date_from"></el-input>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group" style="margin-bottom: 0;">
+                                                    <label class="control-label">Vigencia hasta</label>
+                                                    <el-input type="date" v-model="ncResolution.date_to"></el-input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -566,19 +634,55 @@
                                style="text-decoration: underline;">postman</a>.
                         </div>
                     </div>
+                    <!-- Detalles de la petición -->
+                    <div class="api-doc-card">
+                        <div class="api-doc-title"><i class="el-icon-connection"></i> Detalles de la petición</div>
+                        <div class="api-doc-row">
+                            <span class="api-method-badge">POST</span>
+                            <code class="api-url">{{ invoiceEndpointUrl }}</code>
+                            <el-button size="mini" type="text" icon="el-icon-document-copy"
+                                @click="copyText(invoiceEndpointUrl, 'URL copiada')">Copiar</el-button>
+                        </div>
+                        <div class="api-doc-row">
+                            <span class="api-header-name">Authorization:</span>
+                            <code class="api-url">Bearer {{ bearerToken }}</code>
+                            <el-button size="mini" type="text" icon="el-icon-document-copy"
+                                @click="copyText('Bearer ' + bearerToken, 'Token copiado')">Copiar</el-button>
+                        </div>
+                        <div class="api-doc-row">
+                            <span class="api-header-name">Content-Type:</span>
+                            <code class="api-url">application/json</code>
+                            <span class="api-header-name" style="margin-left: 12px;">Accept:</span>
+                            <code class="api-url">application/json</code>
+                        </div>
+                    </div>
+
                     <form autocomplete="off">
                         <div class="form-body">
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label class="control-label">JSON de la Factura</label>
-                                        <el-input
-                                            type="textarea"
-                                            :rows="18"
-                                            v-model="invoice.json"
-                                            placeholder="Pegue aquí el JSON de la factura"
-                                        ></el-input>
+                                        <div class="json-editor">
+                                            <pre class="json-doc json-editor-highlight" ref="editorHighlight" v-html="highlightedInvoiceJson"></pre>
+                                            <textarea
+                                                ref="editorInput"
+                                                class="json-editor-input"
+                                                v-model="invoice.json"
+                                                spellcheck="false"
+                                                wrap="off"
+                                                placeholder="Pegue aquí el JSON de la factura"
+                                                @scroll="syncEditorScroll"
+                                                @input="syncEditorScroll"
+                                            ></textarea>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="col-md-12 text-center" style="margin-bottom: 15px;">
+                                    <el-button size="medium" type="primary" :loading="loading_submit" @click="sendInvoice">
+                                        <i class="el-icon-s-promotion"></i> Enviar Factura
+                                    </el-button>
                                 </div>
 
                                 <div class="col-md-12" v-if="invoice.response">
@@ -590,11 +694,52 @@
                             </div>
                         </div>
                     </form>
+
+                    <!-- Ejemplos documentados -->
+                    <el-collapse v-model="openExamples" class="mt-3">
+                        <el-collapse-item name="invoice">
+                            <template slot="title">
+                                <b><i class="el-icon-tickets"></i>&nbsp;Ejemplo documentado: Factura Electrónica de Venta</b>
+                            </template>
+                            <div class="json-doc-toolbar">
+                                <span class="api-method-badge">POST</span>
+                                <code class="api-url">{{ invoiceEndpointUrl }}</code>
+                                <el-button size="mini" plain icon="el-icon-document-copy"
+                                    @click="copyExample(documentedInvoiceExample())">Copiar JSON</el-button>
+                            </div>
+                            <pre class="json-doc" v-html="highlightedInvoiceExample"></pre>
+                        </el-collapse-item>
+                        <el-collapse-item name="credit-note">
+                            <template slot="title">
+                                <b><i class="el-icon-tickets"></i>&nbsp;Ejemplo documentado: Nota Crédito</b>
+                            </template>
+                            <div class="json-doc-toolbar">
+                                <span class="api-method-badge">POST</span>
+                                <code class="api-url">{{ creditNoteEndpointUrl }}</code>
+                                <el-button size="mini" plain icon="el-icon-document-copy"
+                                    @click="copyExample(documentedCreditNoteExample())">Copiar JSON</el-button>
+                            </div>
+                            <pre class="json-doc" v-html="highlightedCreditNoteExample"></pre>
+                        </el-collapse-item>
+                    </el-collapse>
+                    <div class="text-muted mt-2" style="font-size: 12px;">
+                        <i class="el-icon-info"></i> Los comentarios <code>//</code> de los ejemplos son solo informativos.
+                        Use el botón <b>Copiar JSON</b> para obtener el JSON limpio, listo para enviar.
+                    </div>
+
+                    <!-- Más ejemplos en la documentación -->
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <i class="el-icon-notebook-2"></i>
+                        <b>¿Necesita más ejemplos?</b> Nota Débito, Documento Soporte, Nómina Electrónica, Documento Equivalente,
+                        facturas con descuentos, retenciones y más casos están disponibles en la
+                        <a href="#" @click.prevent="openDocumentation" style="text-decoration: underline;">documentación completa</a>
+                        y en la
+                        <a href="https://documenter.getpostman.com/view/1431398/2sAY4uCido#intro"
+                           target="_blank" rel="noopener noreferrer"
+                           style="text-decoration: underline;">collection de Postman</a>.
+                    </div>
                 </div>
                 <div class="col-md-12 text-center mt-4">
-                    <el-button size="medium" type="primary" :loading="loading_submit" @click="sendInvoice">
-                        Enviar Factura
-                    </el-button>
                     <el-button size="medium" type="success" @click="closeWizard">
                         Cerrar
                     </el-button>
@@ -606,6 +751,142 @@
 <style>
     .extend {
         width: 100%;
+    }
+    .cert-help-box {
+        border: 1px dashed #dcdfe6;
+        border-radius: 6px;
+        padding: 12px 12px;
+        text-align: center;
+        background: #f9fafc;
+        margin-top: 20px;
+    }
+    .cert-help-title {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #2B323D;
+        margin: 6px 0 4px;
+    }
+    .cert-help-text {
+        font-size: 11px;
+        color: #666;
+        margin-bottom: 10px;
+        line-height: 1.35;
+    }
+    .cert-help-box a.el-button {
+        text-decoration: none;
+    }
+    .nc-resolution-box {
+        border: 1px dashed #dcdfe6;
+        border-radius: 6px;
+        background: #f9fafc;
+        padding: 12px 12px 8px;
+        margin-top: 10px;
+    }
+    .api-doc-card {
+        border: 1px solid #dcdfe6;
+        border-radius: 6px;
+        background: #f9fafc;
+        padding: 12px 16px;
+        margin-bottom: 15px;
+    }
+    .api-doc-title {
+        font-weight: 600;
+        color: #2B323D;
+        margin-bottom: 8px;
+    }
+    .api-doc-row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+    .api-method-badge {
+        background: #67c23a;
+        color: #fff;
+        font-weight: 700;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        letter-spacing: .5px;
+    }
+    .api-url {
+        background: #eef1f6;
+        padding: 2px 8px;
+        border-radius: 4px;
+        color: #409EFF;
+        word-break: break-all;
+    }
+    .api-header-name {
+        font-weight: 600;
+        color: #606266;
+    }
+    .json-doc-toolbar {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    .json-doc {
+        background: #282c34;
+        color: #abb2bf;
+        border-radius: 6px;
+        padding: 16px;
+        font-size: 12.5px;
+        line-height: 1.55;
+        overflow-x: auto;
+        font-family: Consolas, 'Courier New', monospace;
+        margin-bottom: 0;
+    }
+    .json-doc .json-key { color: #e06c75; }
+    .json-doc .json-string { color: #98c379; }
+    .json-doc .json-number { color: #d19a66; }
+    .json-doc .json-boolean { color: #56b6c2; }
+    .json-doc .json-comment { color: #7f848e; font-style: italic; }
+    .json-editor {
+        position: relative;
+        height: 420px;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #282c34;
+    }
+    .json-editor-highlight {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+    .json-editor-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        padding: 16px;
+        margin: 0;
+        border: 0;
+        resize: none;
+        background: transparent;
+        color: transparent;
+        caret-color: #ffffff;
+        font-family: Consolas, 'Courier New', monospace;
+        font-size: 12.5px;
+        line-height: 1.55;
+        white-space: pre;
+        overflow: auto;
+        outline: none;
+    }
+    .json-editor-input::selection {
+        background: rgba(64, 158, 255, .35);
+    }
+    .json-editor-input::placeholder {
+        color: #7f848e;
     }
 </style>
 <script>
@@ -679,9 +960,43 @@
                     { src: '/img/help/dian-id-pin.png', caption: 'Resultado: en "Listado de modos de operación asociados" encuentras el ID del SW y el PIN' },
                 ],
                 existingResolution: null,
+                openExamples: [],
+                createCreditNoteResolution: true,
+                // Resolución de Nota Crédito: la DIAN no exige numeración autorizada,
+                // el número puede ser cualquiera y no requiere clave técnica
+                ncResolution: {
+                    type_document_id: 4,
+                    prefix: 'NC',
+                    resolution: '1',
+                    from: 1,
+                    to: 99999999,
+                    date_from: '2019-01-19',
+                    date_to: '2030-01-19',
+                },
             };
         },
         computed: {
+            invoiceEndpointUrl() {
+                return window.location.origin + '/api/ubl2.1/invoice';
+            },
+            creditNoteEndpointUrl() {
+                return window.location.origin + '/api/ubl2.1/credit-note';
+            },
+            bearerToken() {
+                return (this.responseCompany && this.responseCompany.token)
+                    ? this.responseCompany.token
+                    : '{SU_TOKEN}';
+            },
+            highlightedInvoiceExample() {
+                return this.highlightJson(this.documentedInvoiceExample());
+            },
+            highlightedCreditNoteExample() {
+                return this.highlightJson(this.documentedCreditNoteExample());
+            },
+            highlightedInvoiceJson() {
+                // \n final para que el alto del resaltado coincida con el textarea
+                return this.highlightJson((this.invoice.json || '') + '\n');
+            },
             formattedInvoiceResponse() {
                 try {
                     return typeof this.invoice.response === 'string'
@@ -747,18 +1062,23 @@
                 this.responseInvoice = {};
             },
             defaultInvoiceJson() {
+                // fecha y hora actuales (zona horaria local) en el formato que exige la DIAN
+                const now = new Date();
+                const pad = (n) => String(n).padStart(2, '0');
+                const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+                const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
                 return `{
   "number": 994899975,
   "type_document_id": 1,
-  "date": "2026-05-08",
-  "time": "08:40:00",
+  "date": "${today}",
+  "time": "${time}",
   "resolution_number": "18760000001",
   "prefix": "SETP",
   "sendmail": false,
   "customer": {
     "identification_number": "89008003",
     "name": "OBANDO LONDONO ALEXANDER",
-    "email": "jeremyabel710@gmail.com"
+    "email": "ejemplo@gmail.com"
   },
   "payment_form": {
     "payment_form_id": 2,
@@ -840,6 +1160,185 @@
     }
   ]
 }`;
+            },
+            documentedInvoiceExample() {
+                return `{
+  "number": 994899975,                          // Consecutivo (dentro del rango de la resolución)
+  "type_document_id": 1,                        // 1 = Factura electrónica de Venta
+  "date": "2026-05-08",                         // Fecha de emisión (AAAA-MM-DD)
+  "time": "08:40:00",                           // Hora de emisión (HH:MM:SS)
+  "resolution_number": "18760000001",           // Número de la resolución DIAN
+  "prefix": "SETP",                             // Prefijo de la resolución
+  "sendmail": false,                            // true = envía la factura por correo al cliente
+  "customer": {                                 // Datos del adquiriente (cliente)
+    "identification_number": "89008003",        // NIT o cédula, sin dígito de verificación
+    "name": "OBANDO LONDONO ALEXANDER",         // Razón social o nombre completo
+    "email": "ejemplo@gmail.com"                // Correo donde el cliente recibe la factura
+  },
+  "payment_form": {                             // Forma de pago
+    "payment_form_id": 2,                       // 1 = Contado, 2 = Crédito
+    "payment_method_id": 75,                    // Medio de pago (10 = Efectivo, 75 = Consignación, ...)
+    "payment_due_date": "2026-11-30",           // Fecha de vencimiento (solo crédito)
+    "duration_measure": "4"                     // Plazo en días (solo crédito)
+  },
+  "legal_monetary_totals": {                    // Totales del documento
+    "line_extension_amount": "1000.00",         // Subtotal antes de impuestos
+    "tax_exclusive_amount": "1000.00",          // Base gravable
+    "tax_inclusive_amount": "1190.00",          // Subtotal + impuestos
+    "payable_amount": "1190.00"                 // Total a pagar
+  },
+  "tax_totals": [                               // Impuestos globales del documento
+    {
+      "tax_id": 1,                              // 1 = IVA
+      "tax_amount": "190.00",                   // Valor del impuesto
+      "percent": "19",                          // Tarifa aplicada (%)
+      "taxable_amount": "1000.00"               // Base sobre la que se calcula
+    }
+  ],
+  "invoice_lines": [                            // Detalle de productos / servicios
+    {
+      "unit_measure_id": 70,                    // 70 = Unidad
+      "invoiced_quantity": "1",                 // Cantidad facturada
+      "line_extension_amount": "1000.00",       // Total de la línea antes de impuestos
+      "free_of_charge_indicator": false,        // true si la línea es a título gratuito (muestra)
+      "description": "Producto de prueba 1",    // Descripción del producto o servicio
+      "code": "6455",                           // Código interno del producto
+      "type_item_identification_id": 4,         // 4 = Estándar de adopción del contribuyente
+      "price_amount": "1000.00",                // Precio unitario
+      "base_quantity": "1",                     // Cantidad base del precio
+      "tax_totals": [                           // Impuestos de la línea
+        {
+          "tax_id": 1,
+          "tax_amount": "190.00",
+          "taxable_amount": "1000.00",
+          "percent": "19.00"
+        }
+      ]
+    }
+  ]
+}`;
+            },
+            documentedCreditNoteExample() {
+                return `{
+  "billing_reference": {                        // Factura que se está afectando
+    "number": "SETP994899975",                  // Prefijo + consecutivo de la factura afectada
+    "uuid": "941cf36af62dbbc06f105d2a80e9bfe683a90e84960eae4d351cc3afbe8f848c26c39bac4fbc80fa254824c6369ea694", // CUFE de la factura afectada (96 caracteres)
+    "issue_date": "2026-05-08"                  // Fecha de emisión de la factura afectada
+  },
+  "discrepancyresponsecode": 2,                 // Motivo: 1=Devolución parcial, 2=Anulación, 3=Rebaja o descuento, 4=Ajuste de precio, 5=Otros
+  "number": 1,                                  // Consecutivo de la NC (dentro del rango de la resolución NC)
+  "type_document_id": 4,                        // 4 = Nota Crédito
+  "prefix": "NC",                               // Prefijo de la resolución de Nota Crédito (creada en el paso Resolución)
+  "date": "2026-05-09",                         // Fecha de emisión (AAAA-MM-DD)
+  "time": "10:30:00",                           // Hora de emisión (HH:MM:SS)
+  "sendmail": false,                            // true = envía la nota por correo al cliente
+  "customer": {                                 // Mismo adquiriente de la factura afectada
+    "identification_number": "89008003",
+    "name": "OBANDO LONDONO ALEXANDER",
+    "email": "ejemplo@gmail.com"
+  },
+  "legal_monetary_totals": {                    // Totales de la nota crédito
+    "line_extension_amount": "1000.00",
+    "tax_exclusive_amount": "1000.00",
+    "tax_inclusive_amount": "1190.00",
+    "payable_amount": "1190.00"
+  },
+  "tax_totals": [
+    {
+      "tax_id": 1,                              // 1 = IVA
+      "tax_amount": "190.00",
+      "percent": "19",
+      "taxable_amount": "1000.00"
+    }
+  ],
+  "credit_note_lines": [                        // Detalle de las líneas que se acreditan
+    {
+      "unit_measure_id": 70,                    // 70 = Unidad
+      "invoiced_quantity": "1",                 // Cantidad a acreditar
+      "line_extension_amount": "1000.00",
+      "free_of_charge_indicator": false,
+      "description": "Producto de prueba 1",
+      "code": "6455",
+      "type_item_identification_id": 4,
+      "price_amount": "1000.00",
+      "base_quantity": "1",
+      "tax_totals": [
+        {
+          "tax_id": 1,
+          "tax_amount": "190.00",
+          "taxable_amount": "1000.00",
+          "percent": "19.00"
+        }
+      ]
+    }
+  ]
+}`;
+            },
+            highlightJson(code) {
+                const escaped = code
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                return escaped.replace(
+                    /("(?:\\.|[^"\\])*")(\s*:)?|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?)|(\/\/[^\n]*)/g,
+                    (match, str, colon, bool, num, comment) => {
+                        if (comment) return '<span class="json-comment">' + comment + '</span>';
+                        if (str !== undefined) {
+                            if (colon) return '<span class="json-key">' + str + '</span>' + colon;
+                            return '<span class="json-string">' + str + '</span>';
+                        }
+                        if (bool) return '<span class="json-boolean">' + bool + '</span>';
+                        if (num !== undefined) return '<span class="json-number">' + num + '</span>';
+                        return match;
+                    }
+                );
+            },
+            copyText(text, message) {
+                const done = () => this.$message.success(message || 'Copiado al portapapeles');
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done).catch(() => this.fallbackCopy(text, done));
+                } else {
+                    this.fallbackCopy(text, done);
+                }
+            },
+            fallbackCopy(text, done) {
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.style.position = 'fixed';
+                el.style.opacity = '0';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                done();
+            },
+            copyExample(code) {
+                // quitar los comentarios informativos para entregar un JSON válido
+                const clean = code.replace(/[ \t]*\/\/[^\n]*/g, '');
+                this.copyText(clean, 'JSON copiado (sin comentarios, listo para enviar)');
+            },
+            syncEditorScroll() {
+                const ta = this.$refs.editorInput;
+                const hl = this.$refs.editorHighlight;
+                if (ta && hl) {
+                    hl.scrollTop = ta.scrollTop;
+                    hl.scrollLeft = ta.scrollLeft;
+                }
+            },
+            saveCreditNoteResolution() {
+                if (!this.createCreditNoteResolution) return Promise.resolve();
+                return this.$http
+                    .put(`/${this.resourceapi}/resolution`, this.ncResolution, this.getHeaderConfig())
+                    .then(() => {
+                        this.$message.success(`Resolución de Nota Crédito (prefijo ${this.ncResolution.prefix}) creada.`);
+                    })
+                    .catch(error => {
+                        let detail = '';
+                        if (error.response && error.response.data && error.response.data.errors) {
+                            detail = ': ' + Object.values(error.response.data.errors).flat().join(' ');
+                        }
+                        this.$message.warning('No se pudo crear la resolución de Nota Crédito' + detail + '. Puede registrarla luego vía PUT /api/ubl2.1/config/resolution.');
+                    });
             },
             validateRequiredFields() {
                 const requiredFields = [
@@ -1079,11 +1578,14 @@
                             this.responseResolution = response.data;
                             this.$message.success(response.data.message);
                             if (finish) {
-                                // Marcar todos los pasos como completados y cerrar el wizard
-                                this.active = 5;
-                                setTimeout(() => this.closeWizard(), 800);
+                                // Crear la resolución NC (si está marcada) antes de cerrar el wizard
+                                this.saveCreditNoteResolution().then(() => {
+                                    this.active = 5;
+                                    setTimeout(() => this.closeWizard(), 800);
+                                });
                                 return;
                             }
+                            this.saveCreditNoteResolution();
                             // Pre-rellenar prefix y resolution_number en el JSON de factura
                             try {
                                 const parsed = JSON.parse(this.invoice.json || '{}');

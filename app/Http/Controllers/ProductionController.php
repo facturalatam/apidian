@@ -35,8 +35,10 @@ class ProductionController extends Controller
         $invoiceData = array_merge([
             'documents' => Document::where('identification_number', $company->identification_number)
                 ->whereIn('type_document_id', [1,2,3,4,5])
+                ->filter(request('invoice_search'), request('invoice_search_field'), request('invoice_search_to'))
                 ->orderBy('id', 'DESC')
-                ->paginate(20, ['*'], 'invoice_page'),
+                ->paginate(20, ['*'], 'invoice_page')
+                ->withQueryString(),
             'resolution_credit_notes' => Resolution::where('type_document_id', 4)
                 ->where('company_id', $company->id)
                 ->get()
@@ -45,15 +47,19 @@ class ProductionController extends Controller
         $supportData = array_merge([
             'documents' => Document::where('identification_number', $company->identification_number)
                 ->whereIn('type_document_id', [11,13])
+                ->filter(request('support_search'), request('support_search_field'), request('support_search_to'))
                 ->orderBy('id', 'DESC')
                 ->paginate(20, ['*'], 'support_page')
+                ->withQueryString()
         ], $this->buildResolutionData($company, $supportResolutionIds));
 
         $eventData = [
             'documents' => ReceivedDocument::where('customer', $company->identification_number)
                 ->where('state_document_id', 1)
+                ->filter(request('event_search'), request('event_search_field'), request('event_search_to'))
                 ->orderBy('id', 'DESC')
                 ->paginate(10, ['*'], 'event_page')
+                ->withQueryString()
         ];
 
         return view('company.production.index', compact(
@@ -113,8 +119,10 @@ class ProductionController extends Controller
                 $typeDocumentIds = [1,2,3,4,5];
                 $documents = Document::where('identification_number', $company->identification_number)
                     ->whereIn('type_document_id', $typeDocumentIds)
+                    ->filter(request('invoice_search'), request('invoice_search_field'), request('invoice_search_to'))
                     ->orderBy('id', 'DESC')
-                    ->paginate(20);
+                    ->paginate(20)
+                    ->withQueryString();
                 $listView = 'company.documents';
                 $indexView = 'company.production.invoice.index';
                 break;
@@ -122,15 +130,19 @@ class ProductionController extends Controller
                 $typeDocumentIds = [11,13];
                 $documents = Document::where('identification_number', $company->identification_number)
                     ->whereIn('type_document_id', $typeDocumentIds)
+                    ->filter(request('support_search'), request('support_search_field'), request('support_search_to'))
                     ->orderBy('id', 'DESC')
-                    ->paginate(20);
+                    ->paginate(20)
+                    ->withQueryString();
                 $listView = 'company.documents';
                 $indexView = 'company.production.support.index';
                 break;
             case 'event':
                 $documents = ReceivedDocument::where('customer', $company->identification_number)
                     ->where('state_document_id', 1)
-                    ->paginate(10);
+                    ->filter(request('event_search'), request('event_search_field'), request('event_search_to'))
+                    ->paginate(10)
+                    ->withQueryString();
                 $listView = 'company.events';
                 $indexView = 'company.production.event.index';
                 break;
@@ -321,6 +333,9 @@ class ProductionController extends Controller
         }
 
         return [
+            // El tipo viaja en el arreglo para que el badge sepa contra qué URL del
+            // software comparar; sin él caía a la de facturas para todos los tipos.
+            'type' => $type,
             'environment_id' => $environmentId,
             'has_software' => $hasSoftware,
             'software_info' => $softwareInfo
@@ -335,6 +350,12 @@ class ProductionController extends Controller
 
         if (!in_array($environmentId, [1, 2])) {
             return back()->with('error', 'Ambiente no válido');
+        }
+
+        // Sin software solo se movería la columna y la URL de envío quedaría como está,
+        // que es exactamente la desincronización que hace mentir al badge.
+        if (!$company->software) {
+            return back()->with('error', 'La empresa no tiene software configurado. Configure el software antes de cambiar el ambiente.');
         }
 
         switch ($type) {
@@ -709,12 +730,23 @@ class ProductionController extends Controller
                     'ajuste_statuses' => $ajuste_statuses
                 ]);
             }
-            if ($step == 3 && $type === 'payroll') {
+            if ($step == 3) {
+                // Solo se mueve el tipo que se está migrando. Antes se enviaba el ambiente
+                // de facturas en cada paso a producción, así que habilitar otro tipo bajaba
+                // las facturas a habilitación, y soporte/eventos no se tocaban nunca porque
+                // no tenían rama en este paso.
+                $envColumnByType = [
+                    'invoice' => 'type_environment_id',
+                    'support' => 'support_document_type_environment_id',
+                    'event'   => 'event_type_environment_id',
+                ];
+
+                if (!isset($envColumnByType[$type])) {
+                    return response()->json(['error' => 'Tipo de documento no válido para el cambio de ambiente.']);
+                }
+
                 try {
-                    $envData = [
-                        "type_environment_id" => 2,
-                        "payroll_type_environment_id" => 1
-                    ];
+                    $envData = [$envColumnByType[$type] => 1];
                     $envResponse = $client->put('/api/ubl2.1/config/environment', [
                         'headers' => $headers,
                         'json' => $envData
@@ -997,25 +1029,6 @@ class ProductionController extends Controller
                 }
             }
 
-            if ($step == 3) {
-                // \Log::info('Paso 3: Cambiar ambiente');
-                try {
-                    $envData = [
-                        "type_environment_id" => $type === 'invoice' ? 1 : 2,
-                        "payroll_type_environment_id" => 2
-                    ];
-                    $envResponse = $client->put('/api/ubl2.1/config/environment', [
-                        'headers' => $headers,
-                        'json' => $envData
-                    ]);
-                    $envResult = json_decode($envResponse->getBody(), true);
-                    // \Log::info('Respuesta cambio de ambiente', ['envResult' => $envResult]);
-                    return response()->json(['success' => true, 'env_result' => $envResult]);
-                } catch (\Exception $e) {
-                    // \Log::error('Error cambiando ambiente', ['exception' => $e]);
-                    return response()->json(['error' => 'Error cambiando ambiente: ' . $e->getMessage()]);
-                }
-            }
         }
 
         return back()->with('error', 'Petición inválida.');

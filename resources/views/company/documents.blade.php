@@ -3,6 +3,17 @@
         <h2>{{ $company->user->name }} - {{ $company->identification_number }}</h2>
         <br>
         <span class="text-muted">Seleccione el tipo de documento</span>
+        @if(isset($company))
+            @if(isset($type))
+                @include('company.production._environment_badge', ['company' => $company, 'type' => $type])
+            @else
+                {{-- Listado mixto (todos los tipos): un badge por tipo, porque cada uno
+                     tiene su propia columna de ambiente y su propia URL de envio. --}}
+                @foreach(['invoice' => 'Facturas', 'support' => 'Soporte'] as $envTabType => $envTabLabel)
+                    @include('company.production._environment_badge', ['company' => $company, 'type' => $envTabType, 'label' => $envTabLabel])
+                @endforeach
+            @endif
+        @endif
     </div>
     <div class="mt-auto pb-1">
         <a href="{{ route('home') }}" class="btn btn-secondary btn-sm">
@@ -20,13 +31,61 @@
 
 @php
     // dd($resolution_credit_notes);
+
+    // Filtro de documentos (Factura / Soporte comparten esta vista). La barra de
+    // búsqueda reutilizable vive en partials/search/bar. Acá solo se arma la lista de
+    // campos (los tipos de documento dependen de la vista) y se calculan un par de
+    // variables para el mensaje del estado vacío.
+    $sp = (isset($type) && $type) ? $type.'_' : '';
+    $searchField = request($sp.'search_field', 'number');
+    $searchTerm  = request($sp.'search');
+    $searchTo    = request($sp.'search_to');
+    $hasSearch   = filled($searchTerm) || ($searchField === 'date' && filled($searchTo));
+    $totalDocs   = method_exists($documents, 'total') ? $documents->total() : $documents->count();
+
+    $typeIdsByView = ['invoice' => [1,2,3,4,5], 'support' => [11,13]];
+    $tIds  = (isset($type) && isset($typeIdsByView[$type])) ? $typeIdsByView[$type] : null;
+    $tDocs = $tIds ? \App\TypeDocument::whereIn('id', $tIds)->orderBy('id')->get() : \App\TypeDocument::orderBy('id')->get();
+
+    $documentFields = [
+        ['key' => 'number', 'label' => 'Número', 'control' => 'text'],
+        ['key' => 'prefix', 'label' => 'Prefijo', 'control' => 'text'],
+        ['key' => 'client', 'label' => 'Cliente', 'control' => 'text'],
+        ['key' => 'date',   'label' => 'Fecha',  'control' => 'date'],
+    ];
+    if ($tDocs->isNotEmpty()) {
+        $documentFields[] = ['key' => 'type', 'label' => 'Tipo de documento', 'control' => 'select', 'options' => $tDocs->pluck('name', 'id')->toArray()];
+    }
+    $documentFields[] = ['key' => 'state',   'label' => 'Válido',   'control' => 'select', 'options' => ['si' => 'Sí', 'no' => 'No']];
+    $documentFields[] = ['key' => 'ambient', 'label' => 'Ambiente', 'control' => 'select', 'options' => ['hab' => 'Habilitación', 'prod' => 'Producción']];
+
+    // Para el mensaje del estado vacío.
+    $fieldLabels = collect($documentFields)->pluck('label', 'key')->toArray();
+    if ($searchField === 'type') {
+        $searchDisplay = $tDocs->pluck('name', 'id')->toArray()[$searchTerm] ?? $searchTerm;
+    } elseif (in_array($searchField, ['state', 'ambient'], true)) {
+        $searchDisplay = ['si' => 'Sí', 'no' => 'No', 'hab' => 'Habilitación', 'prod' => 'Producción'][$searchTerm] ?? $searchTerm;
+    } elseif ($searchField === 'date') {
+        $searchDisplay = (filled($searchTerm) && filled($searchTo)) ? ($searchTerm.' a '.$searchTo) : ($searchTerm ?: $searchTo);
+    } else {
+        $searchDisplay = $searchTerm;
+    }
 @endphp
+
+@include('partials.search.bar', [
+    'searchPrefix' => $sp,
+    'fields'       => $documentFields,
+    'default'      => 'number',
+    'total'        => $totalDocs,
+])
 
 @if($documents->count() == 0)
 <div class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
     <div class="text-center">
         <div class="alert alert-info d-inline-block px-4 py-3 mb-0" style="font-size: 1.1rem;">
-            @if(isset($type))
+            @if($hasSearch)
+                No se encontraron documentos que coincidan con "<strong>{{ $searchDisplay }}</strong>"{{ $searchField ? ' en el campo '.($fieldLabels[$searchField] ?? $searchField) : '' }}.
+            @elseif(isset($type))
                 @if($type == 'invoice')
                     No hay facturas electrónicas generadas para esta empresa.
                     Configura y empieza a crear facturas.
@@ -156,7 +215,7 @@
         {{-- {{ dd($documents) }} --}}
     </div>
     <div class="card-footer d-flex justify-content-center mt-2">
-        {{ $documents->links() }}
+        {{ $documents->appends(request()->query())->links() }}
     </div>
 </div>
 @endif

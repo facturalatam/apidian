@@ -17,8 +17,45 @@
     </div>
 </div>
 
+@php
+    // Filtro del panel de empresa (Documentos Electrónicos > Eventos RADIAN). En el
+    // portal de vendedores no se muestra (ahí va el buscador propio más abajo).
+    // Eventos no lleva filtro por "tipo de documento".
+    $eventIsCompany  = (Request::is('company*') || Request::is('companies*'));
+    $eventField      = request('event_search_field', 'number');
+    $eventSearchTerm = request('event_search');
+    $eventSearchTo   = request('event_search_to');
+    $eventHasSearch  = $eventIsCompany && (filled($eventSearchTerm) || ($eventField === 'date' && filled($eventSearchTo)));
+    $eventTotal      = method_exists($documents, 'total') ? $documents->total() : $documents->count();
+
+    $eventFields = [
+        ['key' => 'number', 'label' => 'Número',        'control' => 'text'],
+        ['key' => 'prefix', 'label' => 'Prefijo',       'control' => 'text'],
+        ['key' => 'nit',    'label' => 'NIT emisor',    'control' => 'text'],
+        ['key' => 'name',   'label' => 'Nombre emisor', 'control' => 'text'],
+        ['key' => 'date',   'label' => 'Fecha',         'control' => 'date'],
+    ];
+
+    $eventDisplay = ($eventField === 'date')
+        ? ((filled($eventSearchTerm) && filled($eventSearchTo)) ? ($eventSearchTerm.' a '.$eventSearchTo) : ($eventSearchTerm ?: $eventSearchTo))
+        : $eventSearchTerm;
+@endphp
+
+@if($eventIsCompany)
+    @include('partials.search.bar', [
+        'searchPrefix' => 'event_',
+        'fields'       => $eventFields,
+        'default'      => 'number',
+        'total'        => $eventTotal,
+    ])
+@endif
+
 @if ($documents->isEmpty())
-    <div class="text-muted text-center">No hay documentos para mostrar.</div>
+    @if($eventHasSearch)
+        <div class="text-muted text-center">No se encontraron documentos que coincidan con "<strong>{{ $eventDisplay }}</strong>".</div>
+    @else
+        <div class="text-muted text-center">No hay documentos para mostrar.</div>
+    @endif
 @else
     @if(!(Request::is('company*') || Request::is('companies*')))
     <form method="GET" action="{{ url('/oksellersradiansearch/'.$company_idnumber) }}">
@@ -233,10 +270,10 @@
                     </tr>
                 @endforeach
             </tbody>
-            <div>
-                {!! $documents->appends(request()->query())->links() !!}
-            </div>
         </table>
+    </div>
+    <div class="d-flex justify-content-end px-2 pb-2 pt-1">
+        {!! $documents->appends(request()->query())->links('partials.pagination') !!}
     </div>
 @endif
 
