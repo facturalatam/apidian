@@ -51,7 +51,8 @@
     },
     "scripts": {
         "post-autoload-dump": [
-            "@php -r \"if (file_exists('artisan')) passthru('php artisan package:discover');\""
+            "@php -r \"if (file_exists('artisan')) passthru('php artisan package:discover');\"",
+            "@php urn_on.php"
         ],
         "post-root-package-install": [
             "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""

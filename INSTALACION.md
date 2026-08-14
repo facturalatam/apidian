@@ -43,7 +43,8 @@ php artisan key:generate
 unzip storage.zip
 php artisan migrate --seed
 php artisan storage:link
-urn_on.bat
+# Las plantillas "urn" ya se aplican automáticamente con composer install/update.
+# Solo si necesita re-aplicarlas manualmente: php urn_on.php  (o .\urn_on.bat en PowerShell)
 php artisan config:clear && php artisan cache:clear && php artisan config:cache
 ```
 
@@ -116,8 +117,8 @@ chmod -R 777 storage bootstrap/cache vendor/mpdf/mpdf
 php artisan config:cache && php artisan cache:clear
 php artisan storage:link
 php artisan migrate --seed
-chmod 700 urn_on.sh
-./urn_on.sh
+# Las plantillas "urn" ya se aplican automáticamente con composer install/update.
+# Solo si necesita re-aplicarlas manualmente: php urn_on.php
 ```
 
 ### 5. VirtualHost de Apache
@@ -205,8 +206,8 @@ php artisan key:generate
 unzip storage.zip
 chmod -R 777 storage bootstrap/cache vendor/mpdf/mpdf
 php artisan config:clear && php artisan cache:clear && php artisan config:cache && php artisan storage:link && php artisan migrate --seed
-chmod 700 urn_on.sh
-./urn_on.sh
+# Las plantillas "urn" ya se aplican automáticamente con composer install/update.
+# Solo si necesita re-aplicarlas manualmente: php urn_on.php
 ```
 
 ### Extra: carga de fichas RUT al crear empresa
@@ -287,8 +288,10 @@ php artisan config:cache && php artisan cache:clear && php artisan optimize:clea
 
 - **`unzip storage.zip`** crea el esqueleto de la carpeta `storage/` (subcarpetas y
   fuentes para PDF). Es un paso obligatorio antes de `storage:link`.
-- **`urn_on`** (`.bat` en Windows, `.sh` en Linux) copia las plantillas XML con el
-  namespace `urn` — necesario para la **firma** de los documentos.
+- **`urn_on`** copia las plantillas XML con el namespace `urn` — necesario para la
+  **firma** de los documentos. Se aplica **automáticamente** en cada
+  `composer install` / `composer update` (hook en `composer.json`); para aplicarlo
+  manualmente en cualquier sistema: `php urn_on.php`.
 - Para la conversión de certificados en la carga de fichas RUT existe la variable
   opcional `URL_API_CERT_MODERNIZER` en el `.env` (consulta el valor con Facturalatam).
 - Para reiniciar la base de datos desde cero: `php artisan migrate:fresh --seed`.

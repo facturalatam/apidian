@@ -48,6 +48,14 @@ API de **facturación electrónica para la DIAN (Colombia)** — versión **Comm
 📋 **Guía completa paso a paso:** [INSTALACION.md](INSTALACION.md) — Windows (Laragon),
 Linux Ubuntu (VPS con Apache) y Docker, incluida la configuración de fichas RUT (Poppler).
 
+📚 **Manuales detallados** (carpeta [docs/](docs/)):
+
+- [Instalación en Windows local (Laragon)](docs/Comandos%20Instalacion%20API%202025%20Windows.md)
+- [Instalación en VPS Linux Ubuntu 20](docs/Comandos%20Instalacion%20API%202025%20Linux%20Ubuntu%2020.md)
+- [Proceso de actualización](docs/Proceso%20de%20actualizacion%20APIDIAN.md)
+- [Habilitar carga de Fichas RUT (Poppler / pdftotext)](docs/Configurar%20PDF%20Fichas%20RUT.md)
+- [Errores frecuentes — causas y soluciones](docs/Errores%20frecuentes%20APIDIAN.md)
+
 ### Ejemplo JSON envio de factura
 
 ```bash
